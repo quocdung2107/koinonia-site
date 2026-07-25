@@ -4,7 +4,7 @@ export default defineConfig({
   lang: "vi-VN",
 
   title: "Koinonia Bible",
-
+  base: '/koinonia-site/',
   description:
     "Phần mềm đọc và trình chiếu Kinh Thánh",
 
