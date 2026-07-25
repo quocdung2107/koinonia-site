@@ -14,7 +14,7 @@ export const site = {
   },
 
   links: {
-    github: "https://github.com/quocdung2107/koinonia-bible-app",
+    github: "https://github.com/quocdung2107/koinonia-site",
     download:
       "https://github.com/quocdung2107/koinonia-bible-app/releases/latest",
     docs: "/guide/getting-started"
