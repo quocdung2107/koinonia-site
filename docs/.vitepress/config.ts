@@ -38,7 +38,7 @@ export default defineConfig({
 
       {
         text: "GitHub",
-        link: "https://github.com/quocdung2107/koinonia-bible-app"
+        link: "https://github.com/quocdung2107/koinonia-site"
       }
     ],
 

@@ -11,7 +11,7 @@
 
       <a
         class="hero-btn primary"
-        href="https://github.com/quocdung2107/koinonia-bible-app/releases/latest"
+        href="https://github.com/quocdung2107/koinonia-site/releases/latest"
         target="_blank"
         >Tải xuống</a
       >

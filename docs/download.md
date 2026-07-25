@@ -17,7 +17,7 @@ Phiên bản đầu tiên của Koinonia Bible đã sẵn sàng.
 
 ## Tải về
 
-👉 **[⬇ Tải phiên bản mới nhất](https://github.com/quocdung2107/koinonia-bible-app/releases/latest)**
+👉 **[⬇ Tải phiên bản mới nhất](https://github.com/quocdung2107/koinonia-site/releases/latest)**
 
 ::: info
 Bạn sẽ luôn được chuyển đến phiên bản phát hành mới nhất trên GitHub.
