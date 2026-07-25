@@ -3,142 +3,113 @@
     <div class="hero-content">
       <h1>Koinonia Bible</h1>
 
-      <p>
-        Phần mềm đọc và trình chiếu Kinh Thánh
-      </p>
+      <p>Phần mềm đọc và trình chiếu Kinh Thánh</p>
 
-      <p class="subtitle">
-        Nhanh • Ngoại tuyến • Miễn phí • Đa bản dịch
-      </p>
+      <p class="subtitle">Nhanh • Ngoại tuyến • Miễn phí • Đa bản dịch</p>
 
       <div class="buttons">
-        <a href="/download" class="primary">
+        <a
+          class="hero-btn primary"
+          href="https://github.com/quocdung2107/koinonia-bible-app/releases/latest"
+          target="_blank"
+        >
           Tải xuống
         </a>
 
-        <a href="/guide/getting-started" class="secondary">
-          Hướng dẫn
-        </a>
+        <a href="/guide/getting-started" class="secondary"> Hướng dẫn </a>
       </div>
     </div>
 
     <div class="hero-image">
-
-      <div class="placeholder">
-
-        Ảnh phần mềm
-
-      </div>
-
+      <div class="placeholder">Ảnh phần mềm</div>
     </div>
-
   </section>
 </template>
 
 <style scoped>
+.hero {
+  display: flex;
 
-.hero{
+  justify-content: space-between;
 
-display:flex;
+  align-items: center;
 
-justify-content:space-between;
+  gap: 60px;
 
-align-items:center;
-
-gap:60px;
-
-padding:80px 0;
-
+  padding: 80px 0;
 }
 
-.hero-content{
-
-flex:1;
-
+.hero-content {
+  flex: 1;
 }
 
-.hero-image{
+.hero-image {
+  flex: 1;
 
-flex:1;
+  display: flex;
 
-display:flex;
-
-justify-content:center;
-
+  justify-content: center;
 }
 
-.placeholder{
+.placeholder {
+  width: 100%;
 
-width:100%;
+  height: 420px;
 
-height:420px;
+  border-radius: 20px;
 
-border-radius:20px;
+  background: #eef4ff;
 
-background:#eef4ff;
+  display: flex;
 
-display:flex;
+  justify-content: center;
 
-justify-content:center;
+  align-items: center;
 
-align-items:center;
+  font-size: 24px;
 
-font-size:24px;
-
-color:#2563eb;
-
+  color: #2563eb;
 }
 
-h1{
+h1 {
+  font-size: 58px;
 
-font-size:58px;
-
-margin-bottom:20px;
-
+  margin-bottom: 20px;
 }
 
-.subtitle{
+.subtitle {
+  margin-top: 20px;
 
-margin-top:20px;
-
-color:#666;
-
+  color: #666;
 }
 
-.buttons{
+.buttons {
+  display: flex;
 
-display:flex;
+  gap: 20px;
 
-gap:20px;
-
-margin-top:35px;
-
+  margin-top: 35px;
 }
 
-.primary{
+.primary {
+  padding: 14px 28px;
 
-padding:14px 28px;
+  background: #2563eb;
 
-background:#2563eb;
+  color: white;
 
-color:white;
+  border-radius: 12px;
 
-border-radius:12px;
-
-text-decoration:none;
-
+  text-decoration: none;
 }
 
-.secondary{
+.secondary {
+  padding: 14px 28px;
 
-padding:14px 28px;
+  border: 1px solid #ccc;
 
-border:1px solid #ccc;
+  border-radius: 12px;
 
-border-radius:12px;
-
-text-decoration:none;
-
+  text-decoration: none;
 }
-
 </style>

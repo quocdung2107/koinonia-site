@@ -5,22 +5,22 @@ const tabs = [
   {
     id: 'reader',
     title: 'Đọc Kinh Thánh',
-    image: '/images/reader.png'
+    image: '/koinonia-site/images/reader.png'
   },
   {
     id: 'search',
     title: 'Tìm kiếm',
-    image: '/images/search.png'
+    image: '/koinonia-site/images/search.png'
   },
   {
     id: 'presentation',
     title: 'Trình chiếu',
-    image: '/images/presentation.png'
+    image: '/koinonia-site/images/presentation.png'
   },
   {
     id: 'settings',
     title: 'Cài đặt',
-    image: '/images/setting.png'
+    image: '/koinonia-site/images/setting.png'
   }
 ]
 
