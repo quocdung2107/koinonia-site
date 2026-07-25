@@ -10,8 +10,6 @@ export default defineConfig({
 
   lastUpdated: true,
 
-  cleanUrls: true,
-
   themeConfig: {
     logo: "/images/Logo-1.svg",
 
