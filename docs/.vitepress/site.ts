@@ -20,5 +20,16 @@ export const site = {
     docs: "/guide/getting-started"
   },
 
+  // Giai đoạn 1 — trang /community đọc trực tiếp bảng "songs" qua
+  // Supabase REST API (PostgREST), dùng ANON KEY (chỉ có quyền đọc nhờ
+  // RLS policy "read_public" — xem supabase/001_songs_raw.sql).
+  // KHÔNG bao giờ điền service_role key vào đây, vì file này chạy ở
+  // trình duyệt của người xem web (public).
+  community: {
+    supabaseUrl: "https://YOUR_PROJECT_REF.supabase.co",
+    supabaseAnonKey: "YOUR_SUPABASE_ANON_KEY",
+    table: "songs"
+  },
+
   license: "MIT"
 }

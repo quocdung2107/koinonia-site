@@ -37,3 +37,39 @@
     transition:.25s;
 
 }
+
+/* ============================================================
+   Trang chủ — tông tối riêng (Giai đoạn 1, khu vực "kiến trúc").
+   Chỉ áp dụng khi <html> có class "koinonia-dark-home" — toggle
+   bởi theme/index.ts theo route hiện tại (route === '/'), nên
+   KHÔNG ảnh hưởng các trang Hướng dẫn/FAQ/Tải xuống/Cộng đồng.
+   ============================================================ */
+html.koinonia-dark-home {
+  --koinonia-bg: #0b0f1a;
+  --koinonia-surface: #131a2a;
+  --koinonia-text-1: #eef2ff;
+  --koinonia-text-2: #9aa4c2;
+  --koinonia-border: #263153;
+  --koinonia-accent-1: #2563eb;
+  --koinonia-accent-2: #06b6d4;
+
+  /* Ghi đè token nền/nav mặc định của VitePress để thanh nav trên
+     cùng cũng chuyển tối, đồng bộ với nội dung bên dưới. */
+  --vp-c-bg: var(--koinonia-bg);
+  --vp-c-bg-alt: var(--koinonia-bg);
+  --vp-c-bg-elv: var(--koinonia-surface);
+  --vp-c-bg-soft: var(--koinonia-surface);
+  --vp-c-text-1: var(--koinonia-text-1);
+  --vp-c-text-2: var(--koinonia-text-2);
+  --vp-c-divider: var(--koinonia-border);
+  --vp-c-border: var(--koinonia-border);
+  --vp-nav-bg-color: rgba(11, 15, 26, 0.72);
+}
+
+html.koinonia-dark-home .VPNav {
+  backdrop-filter: blur(10px);
+}
+
+html.koinonia-dark-home .VPContent {
+  padding: 0 !important;
+}

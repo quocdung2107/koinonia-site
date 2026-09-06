@@ -32,6 +32,11 @@ export default defineConfig({
       },
 
       {
+        text: "Cộng đồng",
+        link: "/community",
+      },
+
+      {
         text: "FAQ",
         link: "/faq",
       },
