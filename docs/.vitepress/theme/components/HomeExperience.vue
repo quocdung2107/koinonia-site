@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { withBase } from 'vitepress'
 import { site } from '../../site'
 
 interface Scene {
@@ -10,77 +11,100 @@ interface Scene {
   detail?: string
   actions?: { label: string; href: string; primary?: boolean }[]
   visual: 'hero' | 'multi-output' | 'timeline' | 'detach' | 'roles' | 'tree' | 'cta'
+  /** Ảnh thật minh hoạ khối (docs/public/home/home_N.png) — có giá trị thì
+   *  template ưu tiên render ảnh, KHÔNG còn dùng sơ đồ CSS giả lập nữa.
+   *  Khung hiển thị cố định tỉ lệ 3:2 — xem .scene__frame bên dưới. */
+  image?: string
+  /** Logo hiển thị trong vòng glow của khối Hero (docs/public/home/logoK.png).
+   *  Nếu ảnh lỗi/thiếu, tự rơi về icon 📖 cũ — xem heroLogoFailed. */
+  logo?: string
 }
+
 
 const scenes: Scene[] = [
   {
     id: 'hero',
     kind: 'hero',
     eyebrow: site.app.name,
-    title: site.app.slogan,
+    title: 'Tổ chức toàn bộ nội dung trình chiếu của buổi nhóm thành một Project chuyên nghiệp',
     detail:
-      'Phần mềm miễn phí, hoạt động ngoại tuyến, hỗ trợ nhiều bản dịch — thiết kế cho cá nhân, nhóm học Kinh Thánh và Hội Thánh.',
+      'Koinonia giúp bạn chuẩn bị, điều khiển và trình chiếu nội dung Kinh Thánh, bài hát và bài giảng trên nhiều màn hình — đơn giản, rõ ràng và không phụ thuộc Internet.',
     actions: [
       { label: 'Tải xuống', href: site.links.download, primary: true },
       { label: 'Hướng dẫn', href: site.links.docs }
     ],
-    visual: 'hero'
+    visual: 'hero',
+    logo: '/home/logoK.png'
   },
+
   {
     id: 'multi-output',
     kind: 'feature',
-    eyebrow: '01 — Đa màn hình',
-    title: 'Một buổi lễ, nhiều màn hình — không còn ai phải hét gọi nhau chỉnh slide',
+    eyebrow: '01 — Nhiều màn hình',
+    title: 'Một máy tính, nhiều màn hình — mỗi màn hình hiển thị đúng thứ bạn cần',
     detail:
-      'Kiến trúc đa cửa sổ tách biệt Control – Output – Presentation, đồng bộ qua kênh nội bộ, mỗi thiết bị lo đúng một phần việc.',
-    visual: 'multi-output'
+      'Màn hình chính để điều khiển. Màn hình phía trước để trình chiếu. Màn hình khác có thể hiển thị nội dung riêng. Koinonia giúp bạn quản lý tất cả trong cùng một hệ thống.',
+    visual: 'multi-output',
+    image: '/home/home_1.png'
   },
+
   {
     id: 'timeline',
     kind: 'feature',
-    eyebrow: '02 — Một dòng thời gian',
-    title: 'Nhấn một nút, mọi màn hình cùng chuyển — nhưng mỗi nơi hiển thị đúng kiểu của nó',
+    eyebrow: '02 — Điều khiển đồng bộ',
+    title: 'Bạn chỉ cần bấm một lần — mọi màn hình chuyển theo đúng chương trình',
     detail:
-      'Một Playlist Master duy nhất điều khiển tiến trình; mỗi Output còn lại tự resolve nội dung theo luật định tuyến riêng, không cần đồng bộ tay.',
-    visual: 'timeline'
+      'Không cần chạy từng màn hình bằng tay. Koinonia giữ một tiến trình trình chiếu thống nhất, đồng thời cho phép mỗi màn hình hiển thị nội dung phù hợp với vai trò của nó.',
+    visual: 'timeline',
+    image: '/home/home_2.png'
   },
+
   {
     id: 'detach',
     kind: 'feature',
-    eyebrow: '03 — Tách màn hình',
-    title: 'Cần một màn hình đi khác nhịp? Tách ra và giao cho người khác điều khiển',
+    eyebrow: '03 — Linh hoạt khi trình chiếu',
+    title: 'Màn hình nào cần chạy riêng? Tách nó ra mà không làm gián đoạn chương trình',
     detail:
-      'Bất kỳ Output nào ngoài Master đều có thể chuyển sang Ghi đè thủ công, điều khiển độc lập bởi một vai trò từ xa chỉ có quyền trên đúng Output đó — xong việc thì đưa nó theo Master trở lại chỉ bằng một nút.',
-    visual: 'detach'
+      'Khi một màn hình cần hiển thị nội dung khác, bạn có thể giao quyền điều khiển riêng cho người phụ trách. Khi cần, chỉ một thao tác là đưa màn hình đó trở lại chương trình chính.',
+    visual: 'detach',
+    image: '/home/home_3.png'
   },
+
   {
     id: 'roles',
     kind: 'feature',
-    eyebrow: '04 — Phân quyền',
-    title: 'Ai được chỉnh gì, giới hạn ở đâu — đặt một lần, dùng lại mọi buổi lễ',
+    eyebrow: '04 — Làm việc theo vai trò',
+    title: 'Mỗi người phụ trách một phần — không ai vô tình điều khiển nhầm màn hình',
     detail:
-      'Vai trò từ xa gắn theo phạm vi (Master hoặc một Output cụ thể), giới hạn hành động cho phép và có thể khoanh vùng theo từng Nhóm.',
-    visual: 'roles'
+      'Phân quyền điều khiển theo từng màn hình và từng khu vực nội dung. Người vận hành chỉ nhìn thấy và thay đổi những gì họ được giao.',
+    visual: 'roles',
+    image: '/home/home_4.png'
   },
+
   {
     id: 'tree',
     kind: 'feature',
-    eyebrow: '05 — Cấu trúc rõ ràng',
-    title: 'Danh sách dài cũng không rối — nhóm slide theo từng phần, khoá lại phần đã xong',
+    eyebrow: '05 — Chuẩn bị chương trình',
+    title: 'Chương trình dài cũng dễ quản lý — mọi nội dung được sắp xếp thành từng phần',
     detail:
-      'Slide tổ chức theo cây Nhóm lồng nhau, kéo-thả sắp xếp, khoá/ẩn từng nhóm khi trình chiếu — một mạch điều khiển duy nhất cho toàn bộ deck dù cấu trúc bên dưới phức tạp.',
+      'Chia bài hát, Kinh Thánh, bài giảng và các nội dung khác thành từng nhóm. Sắp xếp lại dễ dàng, khóa những phần đã chuẩn bị xong và giữ toàn bộ chương trình luôn gọn gàng.',
     visual: 'tree'
   },
+
   {
     id: 'download',
     kind: 'cta',
-    eyebrow: 'Sẵn sàng dùng thử?',
+    eyebrow: 'Bắt đầu với Koinonia',
     title: `Tải Koinonia Bible ${site.release.version}`,
-    detail: `${site.release.platform} · ${site.release.size}`,
-    actions: [{ label: 'Tải xuống miễn phí', href: site.links.download, primary: true }],
+    detail:
+      `Miễn phí · ${site.release.platform} · ${site.release.size}`,
+    actions: [
+      { label: 'Tải xuống miễn phí', href: site.links.download, primary: true }
+    ],
     visual: 'cta'
   }
 ]
+
 
 const containerRef = ref<HTMLElement | null>(null)
 const sceneRefs = ref<Record<string, HTMLElement | null>>({})
@@ -103,6 +127,15 @@ function scrollToScene(id: string) {
 function prefersReducedMotion() {
   return typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
 }
+
+// Ảnh chưa tồn tại (chưa export/đặt sai tên) -> ẩn thẻ <img> lỗi, giữ lại
+// khung nền tối rỗng thay vì hiện icon "ảnh vỡ" xấu giữa trang.
+function onImageError(event: Event) {
+  ;(event.target as HTMLImageElement).style.display = 'none'
+}
+
+// Logo ở khối Hero lỗi/thiếu -> rơi về icon 📖 cũ thay vì để trống.
+const heroLogoFailed = ref(false)
 
 onMounted(() => {
   observer = new IntersectionObserver(
@@ -157,66 +190,25 @@ onBeforeUnmount(() => {
         <!-- Hero -->
         <div v-if="scene.visual === 'hero'" class="diagram diagram--hero">
           <div class="hero-glow" />
-          <div class="hero-mark">📖</div>
+          <img
+            v-if="scene.logo && !heroLogoFailed"
+            class="hero-logo"
+            :src="withBase(scene.logo)"
+            :alt="scene.eyebrow ?? 'Koinonia Bible'"
+            @error="heroLogoFailed = true"
+          />
+          <div v-else class="hero-mark">📖</div>
         </div>
 
-        <!-- 01: multi-output -->
-        <div v-else-if="scene.visual === 'multi-output'" class="diagram diagram--multi">
-          <div class="node node--control">Control</div>
-          <div class="link-set">
-            <span class="link" />
-            <span class="link" />
-            <span class="link" />
-          </div>
-          <div class="node-col">
-            <div class="node node--output">Output 1</div>
-            <div class="node node--output">Output 2</div>
-            <div class="node node--output">Output 3</div>
-          </div>
-        </div>
-
-        <!-- 02: timeline -->
-        <div v-else-if="scene.visual === 'timeline'" class="diagram diagram--timeline">
-          <div class="timeline-track">
-            <span class="timeline-dot" />
-          </div>
-          <div class="timeline-outputs">
-            <div class="mini-screen mini-screen--a">A</div>
-            <div class="mini-screen mini-screen--b">B</div>
-            <div class="mini-screen mini-screen--c">C</div>
-          </div>
-        </div>
-
-        <!-- 03: detach -->
-        <div v-else-if="scene.visual === 'detach'" class="diagram diagram--detach">
-          <div class="node node--control">Control</div>
-          <div class="node-col">
-            <div class="node node--output">Output 1</div>
-            <div class="node node--output">Output 2</div>
-          </div>
-          <div class="detached">
-            <span class="detach-line" />
-            <div class="node node--output node--detached">Output 3</div>
-            <div class="node node--control node--secondary">Control #2</div>
-          </div>
-        </div>
-
-        <!-- 04: roles -->
-        <div v-else-if="scene.visual === 'roles'" class="diagram diagram--roles">
-          <div class="role-card">
-            <span class="role-name">Master</span>
-            <span class="role-tag">navigate</span>
-            <span class="role-tag">jump</span>
-          </div>
-          <div class="role-card">
-            <span class="role-name">Output 2</span>
-            <span class="role-tag">navigate</span>
-            <span class="role-tag">setBlank</span>
-          </div>
-          <div class="role-card">
-            <span class="role-name">Nhóm "Thánh Ca"</span>
-            <span class="role-tag">navigate</span>
-          </div>
+        <!-- 01-04: ảnh thật của app (khung cố định tỉ lệ 3:2 — xem
+             .scene__frame). Thay sơ đồ CSS giả lập trước đây. -->
+        <div v-else-if="scene.image" class="scene__frame">
+          <img
+            :src="withBase(scene.image)"
+            :alt="scene.title"
+            loading="lazy"
+            @error="onImageError"
+          />
         </div>
 
         <!-- 05: tree -->
@@ -400,7 +392,8 @@ onBeforeUnmount(() => {
   }
 }
 
-/* ---- shared diagram look ---- */
+/* ---- shared diagram look (hero / cta / tree — xem block "khung ảnh
+   thật" riêng bên dưới cho khối 01-04) ---- */
 .diagram {
   width: 100%;
   max-width: 420px;
@@ -410,177 +403,28 @@ onBeforeUnmount(() => {
   gap: 18px;
 }
 
-.node {
-  padding: 10px 16px;
-  border-radius: 12px;
+/* ---- khung ảnh thật cho khối 01-04 ----
+   Tỉ lệ CỐ ĐỊNH 3:2. Thiết kế/export ảnh đúng bội số của khung hiển thị
+   tối đa (600 × 400px) để nét trên màn hình Retina — khuyến nghị xuất
+   PNG 1200 × 800px (@2x). object-fit: cover -> ảnh sẽ bị CẮT nếu không
+   đúng tỉ lệ 3:2, nên bố cục nội dung quan trọng (chữ, icon...) tránh
+   nằm sát mép, giữ trong vùng an toàn ~90% giữa khung. */
+.scene__frame {
+  width: 100%;
+  max-width: 600px;
+  aspect-ratio: 3 / 2;
+  border-radius: 20px;
+  overflow: hidden;
   border: 1px solid var(--koinonia-border);
   background: var(--koinonia-surface);
-  font-size: 13px;
-  white-space: nowrap;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.35);
 }
 
-.node--control {
-  color: var(--koinonia-accent-2);
-  border-color: var(--koinonia-accent-2);
-}
-
-.node-col {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.link-set {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  width: 44px;
-}
-
-.link {
-  height: 1px;
-  background: repeating-linear-gradient(
-    90deg,
-    var(--koinonia-accent-2) 0 6px,
-    transparent 6px 12px
-  );
-  animation: dash-move 1.4s linear infinite;
-}
-
-@keyframes dash-move {
-  from {
-    background-position: 0 0;
-  }
-  to {
-    background-position: 24px 0;
-  }
-}
-
-/* timeline */
-.diagram--timeline {
-  flex-direction: column;
-  gap: 28px;
-}
-
-.timeline-track {
-  position: relative;
-  width: 260px;
-  height: 2px;
-  background: var(--koinonia-border);
-}
-
-.timeline-dot {
-  position: absolute;
-  top: 50%;
-  left: 0;
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: var(--koinonia-accent-2);
-  transform: translateY(-50%);
-  animation: timeline-move 3s ease-in-out infinite;
-}
-
-@keyframes timeline-move {
-  0%, 100% {
-    left: 0;
-  }
-  50% {
-    left: calc(100% - 10px);
-  }
-}
-
-.timeline-outputs {
-  display: flex;
-  gap: 14px;
-}
-
-.mini-screen {
-  width: 64px;
-  height: 44px;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 13px;
-  border: 1px solid var(--koinonia-border);
-  background: var(--koinonia-surface);
-}
-
-.mini-screen--a {
-  border-color: var(--koinonia-accent-1);
-}
-.mini-screen--b {
-  border-color: var(--koinonia-accent-2);
-}
-.mini-screen--c {
-  border-color: #a855f7;
-}
-
-/* detach */
-.diagram--detach {
-  align-items: flex-start;
-  gap: 22px;
-}
-
-.detached {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  opacity: 0.9;
-}
-
-.detach-line {
-  width: 1px;
-  height: 18px;
-  background: repeating-linear-gradient(
-    180deg,
-    var(--koinonia-border) 0 5px,
-    transparent 5px 10px
-  );
-}
-
-.node--detached {
-  border-style: dashed;
-}
-
-.node--secondary {
-  font-size: 12px;
-  opacity: 0.85;
-}
-
-/* roles */
-.diagram--roles {
-  flex-direction: column;
-  align-items: stretch;
-  gap: 10px;
-}
-
-.role-card {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-  padding: 10px 14px;
-  border-radius: 10px;
-  border: 1px solid var(--koinonia-border);
-  background: var(--koinonia-surface);
-}
-
-.role-name {
-  font-weight: 600;
-  font-size: 13px;
-  color: var(--koinonia-text-1);
-  margin-right: 4px;
-}
-
-.role-tag {
-  font-size: 11px;
-  padding: 3px 9px;
-  border-radius: 999px;
-  background: rgba(37, 99, 235, 0.18);
-  color: var(--koinonia-accent-2);
+.scene__frame img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 
 /* tree */
@@ -639,6 +483,14 @@ onBeforeUnmount(() => {
   align-items: center;
   justify-content: center;
   font-size: 64px;
+}
+
+.hero-logo {
+  position: relative;
+  width: 72%;
+  height: 72%;
+  object-fit: contain;
+  filter: drop-shadow(0 12px 30px rgba(0, 0, 0, 0.35));
 }
 
 /* ---- desktop: side-by-side layout ---- */
