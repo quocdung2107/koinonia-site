@@ -45,13 +45,16 @@
    KHÔNG ảnh hưởng các trang Hướng dẫn/FAQ/Tải xuống/Cộng đồng.
    ============================================================ */
 html.koinonia-dark-home {
-  --koinonia-bg: #0b0f1a;
-  --koinonia-surface: #131a2a;
-  --koinonia-text-1: #eef2ff;
-  --koinonia-text-2: #9aa4c2;
-  --koinonia-border: #263153;
-  --koinonia-accent-1: #2563eb;
-  --koinonia-accent-2: #06b6d4;
+  /* v2 "Bản đồ tín hiệu" — than đen ấm + terracotta, thay cho tông
+     navy/cyan cũ (Giai đoạn 1). Xem HomeExperience.vue để biết đầy đủ
+     hệ token màu tín hiệu (--c-create/--c-control/--c-tv/...). */
+  --koinonia-bg: #0c0c0d;
+  --koinonia-surface: #171512;
+  --koinonia-text-1: #f4f1ea;
+  --koinonia-text-2: #8a8579;
+  --koinonia-border: #262420;
+  --koinonia-accent-1: #c1622f;
+  --koinonia-accent-2: #cf9b3f;
 
   /* Ghi đè token nền/nav mặc định của VitePress để thanh nav trên
      cùng cũng chuyển tối, đồng bộ với nội dung bên dưới. */
@@ -63,7 +66,7 @@ html.koinonia-dark-home {
   --vp-c-text-2: var(--koinonia-text-2);
   --vp-c-divider: var(--koinonia-border);
   --vp-c-border: var(--koinonia-border);
-  --vp-nav-bg-color: rgba(11, 15, 26, 0.72);
+  --vp-nav-bg-color: rgba(12, 12, 13, 0.72);
 }
 
 html.koinonia-dark-home .VPNav {
@@ -71,5 +74,17 @@ html.koinonia-dark-home .VPNav {
 }
 
 html.koinonia-dark-home .VPContent {
+  padding: 0 !important;
+}
+
+/* index.md không khai báo hero/features trong frontmatter, nên layout
+   "home" mặc định của VitePress vẫn bọc <Content/> (HomeExperience) trong
+   ".vp-doc.container" — max-width/padding/margin riêng của nó (dành cho
+   nội dung dạng tài liệu) khiến hệ thống đường tín hiệu bị bó hẹp lại,
+   không tràn hết chiều ngang như thiết kế. Bỏ khung đó riêng cho trang
+   chủ; HomeExperience.vue tự quản lý max-width/padding của chính nó. */
+html.koinonia-dark-home .VPContent .vp-doc.container {
+  max-width: none !important;
+  margin: 0 !important;
   padding: 0 !important;
 }

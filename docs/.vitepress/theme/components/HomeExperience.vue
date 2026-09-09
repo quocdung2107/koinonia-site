@@ -3,524 +3,913 @@ import { ref, onMounted, onBeforeUnmount } from 'vue'
 import { withBase } from 'vitepress'
 import { site } from '../../site'
 
-interface Scene {
-  id: string
-  kind: 'hero' | 'feature' | 'cta'
-  eyebrow?: string
-  title: string
-  detail?: string
-  actions?: { label: string; href: string; primary?: boolean }[]
-  visual: 'hero' | 'multi-output' | 'timeline' | 'detach' | 'roles' | 'tree' | 'cta'
-  /** Ảnh thật minh hoạ khối (docs/public/home/home_N.png) — có giá trị thì
-   *  template ưu tiên render ảnh, KHÔNG còn dùng sơ đồ CSS giả lập nữa.
-   *  Khung hiển thị cố định tỉ lệ 3:2 — xem .scene__frame bên dưới. */
-  image?: string
-  /** Logo hiển thị trong vòng glow của khối Hero (docs/public/home/logoK.png).
-   *  Nếu ảnh lỗi/thiếu, tự rơi về icon 📖 cũ — xem heroLogoFailed. */
-  logo?: string
+/**
+ * Trang chủ v2 — "Bản đồ tín hiệu".
+ *
+ * Thay hoàn toàn cách tiếp cận scroll-snap "từng khối rời rạc" trước đây
+ * bằng MỘT canvas liên tục: các đường tín hiệu góc cạnh (SVG, vẽ theo vị
+ * trí DOM thật) chạy xuyên suốt từ đầu đến cuối trang, tách nhánh rồi hội
+ * tụ lại theo đúng ý nghĩa sản phẩm — mỗi đường màu = một đường tín hiệu
+ * output (TV / máy chiếu / màn hình phụ / điện thoại điều khiển / màn
+ * hình ban nhạc). Không dùng ảnh nền, không đường cong, không glow.
+ *
+ * Nội dung bên trong từng "screen" (các thanh placeholder) là khung chờ —
+ * gán `image` cho từng ScreenSpec khi có ảnh chụp thật của app, khung
+ * (kích thước, tỉ lệ, viền, vị trí, đường tín hiệu nối tới) giữ nguyên.
+ */
+
+type ScreenType = 'tv' | 'monitor' | 'phone' | 'projector' | 'band'
+type ColorKey = 'create' | 'control' | 'tv' | 'projector' | 'band'
+
+interface ScreenBar {
+  width: string
+  opacity?: number
 }
 
+interface ScreenSpec {
+  key: string
+  type: ScreenType
+  color: ColorKey
+  style: string
+  label?: string
+  bars: ScreenBar[]
+  /** Ảnh chụp thật của app (docs/public/home/...) — thêm sau khi có. Khi
+   *  có giá trị, ảnh thay cho các thanh placeholder, khung giữ nguyên. */
+  image?: string
+}
 
-const scenes: Scene[] = [
+interface Beat {
+  id: string
+  kind: 'open' | 'content' | 'centered' | 'end'
+  sectionStyle?: string
+  stageStyle?: string
+  tag?: string
+  kwLines?: string[]
+  kwHeadingStyle?: string
+  kwStyle?: string
+  vi?: string
+  screens?: ScreenSpec[]
+}
+
+const beats: Beat[] = [
   {
-    id: 'hero',
-    kind: 'hero',
-    eyebrow: site.app.name,
-    title: 'Tổ chức toàn bộ nội dung trình chiếu của buổi nhóm thành một Project chuyên nghiệp',
-    detail:
-      'Koinonia giúp bạn chuẩn bị, điều khiển và trình chiếu nội dung Kinh Thánh, bài hát và bài giảng trên nhiều màn hình — đơn giản, rõ ràng và không phụ thuộc Internet.',
-    actions: [
-      { label: 'Tải xuống', href: site.links.download, primary: true },
-      { label: 'Hướng dẫn', href: site.links.docs }
-    ],
-    visual: 'hero',
-    logo: '/home/logoK.png'
+    id: 'open',
+    kind: 'open',
+    vi: 'Ứng dụng trình chiếu dành cho Hội Thánh.'
   },
 
   {
-    id: 'multi-output',
-    kind: 'feature',
-    eyebrow: '01 — Nhiều màn hình',
-    title: 'Một máy tính, nhiều màn hình — mỗi màn hình hiển thị đúng thứ bạn cần',
-    detail:
-      'Màn hình chính để điều khiển. Màn hình phía trước để trình chiếu. Màn hình khác có thể hiển thị nội dung riêng. Koinonia giúp bạn quản lý tất cả trong cùng một hệ thống.',
-    visual: 'multi-output',
-    image: '/home/home_1.png'
+    id: 'create',
+    kind: 'content',
+    kwStyle: 'left:6%; top:20%; --kw-color: var(--c-create);',
+    tag: '01 · CREATE',
+    kwLines: ['Create'],
+    vi: 'Tạo bài giảng, bài hát và Kinh Thánh thành một Project chuyên nghiệp — không cần kỹ năng thiết kế.',
+    screens: [
+      {
+        key: 'create-editor',
+        type: 'monitor',
+        color: 'create',
+        style: 'left:calc(42% - 95px); top:52%;',
+        label: 'EDITOR',
+        bars: [
+          { width: '62%', opacity: 0.8 },
+          { width: '88%' },
+          { width: '40%', opacity: 0.4 }
+        ]
+      }
+    ]
   },
 
   {
-    id: 'timeline',
-    kind: 'feature',
-    eyebrow: '02 — Điều khiển đồng bộ',
-    title: 'Bạn chỉ cần bấm một lần — mọi màn hình chuyển theo đúng chương trình',
-    detail:
-      'Không cần chạy từng màn hình bằng tay. Koinonia giữ một tiến trình trình chiếu thống nhất, đồng thời cho phép mỗi màn hình hiển thị nội dung phù hợp với vai trò của nó.',
-    visual: 'timeline',
-    image: '/home/home_2.png'
+    id: 'control',
+    kind: 'content',
+    sectionStyle: 'min-height: 58vh;',
+    kwStyle: 'left:6%; top:52%; max-width:380px; --kw-color: var(--c-control);',
+    tag: '02 · CONTROL',
+    kwLines: ['Control'],
+    vi: 'Điều khiển buổi trình chiếu từ bất kỳ đâu trong hội thánh — chỉ một thao tác, mọi màn hình đồng bộ.',
+    screens: [
+      {
+        key: 'control-remote',
+        type: 'phone',
+        color: 'control',
+        style: 'left:calc(72% - 39px); top:2%;',
+        label: 'REMOTE',
+        bars: [{ width: '70%' }, { width: '50%', opacity: 0.5 }]
+      }
+    ]
   },
 
   {
-    id: 'detach',
-    kind: 'feature',
-    eyebrow: '03 — Linh hoạt khi trình chiếu',
-    title: 'Màn hình nào cần chạy riêng? Tách nó ra mà không làm gián đoạn chương trình',
-    detail:
-      'Khi một màn hình cần hiển thị nội dung khác, bạn có thể giao quyền điều khiển riêng cho người phụ trách. Khi cần, chỉ một thao tác là đưa màn hình đó trở lại chương trình chính.',
-    visual: 'detach',
-    image: '/home/home_3.png'
+    id: 'outputs',
+    kind: 'content',
+    sectionStyle: 'min-height: 88vh;',
+    stageStyle: 'min-height: 74vh;',
+    kwStyle: 'left:6%; top:4%; max-width:440px;',
+    kwHeadingStyle: 'font-size:clamp(2.2rem,5.4vw,4.2rem);',
+    tag: '03 · OUTPUTS',
+    kwLines: ['One signal.', 'Many screens.'],
+    vi: 'Một máy tính, nhiều màn hình — mỗi màn hình hiển thị đúng thứ bạn cần.',
+    screens: [
+      {
+        key: 'outputs-band',
+        type: 'band',
+        color: 'band',
+        style: 'left:calc(94% - 78px); top:6%;',
+        label: 'BAND MONITOR',
+        bars: [{ width: '75%' }]
+      },
+      {
+        key: 'outputs-phone',
+        type: 'phone',
+        color: 'control',
+        style: 'left:calc(72% - 39px); top:20%;',
+        label: 'PHONE',
+        bars: [{ width: '65%' }]
+      },
+      {
+        key: 'outputs-monitor',
+        type: 'monitor',
+        color: 'create',
+        style: 'left:calc(50% - 76px); top:56%;',
+        label: 'SIDE SCREEN',
+        bars: [{ width: '60%' }, { width: '85%', opacity: 0.6 }]
+      },
+      {
+        key: 'outputs-tv',
+        type: 'tv',
+        color: 'tv',
+        style: 'left:calc(6% - 60px); top:60%;',
+        label: 'TV',
+        bars: [{ width: '80%' }, { width: '55%', opacity: 0.5 }]
+      },
+      {
+        key: 'outputs-projector',
+        type: 'projector',
+        color: 'projector',
+        style: 'left:calc(28% - 44px); top:78%;',
+        label: 'PROJECTOR',
+        bars: [{ width: '70%' }]
+      }
+    ]
   },
 
   {
-    id: 'roles',
-    kind: 'feature',
-    eyebrow: '04 — Làm việc theo vai trò',
-    title: 'Mỗi người phụ trách một phần — không ai vô tình điều khiển nhầm màn hình',
-    detail:
-      'Phân quyền điều khiển theo từng màn hình và từng khu vực nội dung. Người vận hành chỉ nhìn thấy và thay đổi những gì họ được giao.',
-    visual: 'roles',
-    image: '/home/home_4.png'
+    id: 'present',
+    kind: 'content',
+    sectionStyle: 'min-height: 60vh;',
+    stageStyle: 'min-height: 46vh;',
+    kwStyle: 'left:38%; top:4%; --kw-color: var(--c-tv);',
+    tag: '04 · PRESENT',
+    kwLines: ['Present'],
+    vi: 'Bạn chỉ cần bấm một lần — mọi màn hình chuyển theo đúng chương trình, mỗi nơi một nội dung riêng.',
+    screens: [
+      {
+        key: 'present-tv',
+        type: 'tv',
+        color: 'tv',
+        style: 'left:calc(6% - 60px); top:56%;',
+        bars: [{ width: '90%' }, { width: '40%', opacity: 0.5 }]
+      },
+      {
+        key: 'present-band',
+        type: 'band',
+        color: 'band',
+        style: 'left:calc(94% - 78px); top:60%;',
+        bars: [{ width: '50%' }]
+      }
+    ]
   },
 
   {
-    id: 'tree',
-    kind: 'feature',
-    eyebrow: '05 — Chuẩn bị chương trình',
-    title: 'Chương trình dài cũng dễ quản lý — mọi nội dung được sắp xếp thành từng phần',
-    detail:
-      'Chia bài hát, Kinh Thánh, bài giảng và các nội dung khác thành từng nhóm. Sắp xếp lại dễ dàng, khóa những phần đã chuẩn bị xong và giữ toàn bộ chương trình luôn gọn gàng.',
-    visual: 'tree'
+    id: 'community',
+    kind: 'centered',
+    tag: '05 · COMMUNITY',
+    kwLines: ['Built for', 'the church'],
+    vi: 'Được thiết kế riêng cho các Hội Thánh và cộng đoàn Cơ Đốc Việt Nam.'
   },
 
   {
-    id: 'download',
-    kind: 'cta',
-    eyebrow: 'Bắt đầu với Koinonia',
-    title: `Tải Koinonia Bible ${site.release.version}`,
-    detail:
-      `Miễn phí · ${site.release.platform} · ${site.release.size}`,
-    actions: [
-      { label: 'Tải xuống miễn phí', href: site.links.download, primary: true }
-    ],
-    visual: 'cta'
+    id: 'end',
+    kind: 'end',
+    vi: `Miễn phí · ${site.release.platform} · ${site.release.size}`
   }
 ]
 
-
 const containerRef = ref<HTMLElement | null>(null)
-const sceneRefs = ref<Record<string, HTMLElement | null>>({})
-const visibleIds = ref<Set<string>>(new Set())
-const activeId = ref(scenes[0].id)
+const diagramRef = ref<HTMLElement | null>(null)
+const svgRef = ref<SVGSVGElement | null>(null)
+const beatRefs = ref<HTMLElement[]>([])
 
-const setSceneRef = (id: string) => (el: unknown) => {
-  sceneRefs.value[id] = (el as HTMLElement) ?? null
+function setBeatRef(i: number, el: Element | null) {
+  if (el) beatRefs.value[i] = el as HTMLElement
 }
 
-let observer: IntersectionObserver | null = null
+const logoFailed = ref(false)
 
-function scrollToScene(id: string) {
-  sceneRefs.value[id]?.scrollIntoView({
-    behavior: prefersReducedMotion() ? 'auto' : 'smooth',
-    block: 'start'
-  })
-}
-
-function prefersReducedMotion() {
-  return typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
-}
-
-// Ảnh chưa tồn tại (chưa export/đặt sai tên) -> ẩn thẻ <img> lỗi, giữ lại
-// khung nền tối rỗng thay vì hiện icon "ảnh vỡ" xấu giữa trang.
-function onImageError(event: Event) {
+// Ảnh screen chưa tồn tại (chưa gán/đặt sai tên) -> ẩn thẻ <img> lỗi, giữ
+// khung nền tối rỗng (giống cách xử lý ảnh scene cũ) thay vì icon vỡ.
+function onScreenImageError(event: Event) {
   ;(event.target as HTMLImageElement).style.display = 'none'
 }
 
-// Logo ở khối Hero lỗi/thiếu -> rơi về icon 📖 cũ thay vì để trống.
-const heroLogoFailed = ref(false)
+let cleanupFns: Array<() => void> = []
 
 onMounted(() => {
-  observer = new IntersectionObserver(
-    (entries) => {
-      for (const entry of entries) {
-        const id = (entry.target as HTMLElement).dataset.sceneId
-        if (!id) continue
-        if (entry.isIntersecting) {
-          visibleIds.value.add(id)
-          if (entry.intersectionRatio > 0.5) activeId.value = id
-        }
-      }
-      // trigger reactivity for the Set
-      visibleIds.value = new Set(visibleIds.value)
-    },
-    { threshold: [0, 0.5, 0.75] }
-  )
+  const svg = svgRef.value
+  const diagram = diagramRef.value
+  const container = containerRef.value
+  if (!svg || !diagram || !container) return
 
-  for (const scene of scenes) {
-    const el = sceneRefs.value[scene.id]
-    if (el) observer.observe(el)
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
+  function beatTop(i: number) {
+    const r = beatRefs.value[i].getBoundingClientRect()
+    return r.top + window.scrollY
   }
+  function beatBottom(i: number) {
+    const r = beatRefs.value[i].getBoundingClientRect()
+    return r.top + window.scrollY + r.height
+  }
+  function beatMid(i: number) {
+    return (beatTop(i) + beatBottom(i)) / 2
+  }
+  function laneX(frac: number) {
+    const r = diagram!.getBoundingClientRect()
+    return r.left + window.scrollX + frac * r.width
+  }
+  function elbow(x1: number, y1: number, x2: number, y2: number, ratio?: number) {
+    if (Math.abs(x1 - x2) < 0.5) return `M ${x1} ${y1} L ${x2} ${y2}`
+    const ym = y1 + (y2 - y1) * (ratio == null ? 0.5 : ratio)
+    return `M ${x1} ${y1} L ${x1} ${ym} L ${x2} ${ym} L ${x2} ${y2}`
+  }
+
+  type Pt = [number, number, number]
+  interface Route {
+    color: string
+    width?: number
+    pts: Pt[]
+    _el?: SVGPathElement
+    _len?: number
+    _yStart?: number
+    _yEnd?: number
+  }
+  let routes: Route[] = []
+
+  function buildRoutes() {
+    routes = []
+    const narrow = window.innerWidth <= 780
+
+    if (narrow) {
+      // trục dọc đơn giản cho màn hình nhỏ: ít lane hơn, vẫn tách/hợp
+      const cx = 0.5, lx = 0.28, rx = 0.72
+      routes.push({ color: 'var(--trunk)', pts: [[0, cx, beatTop(0)], [0, cx, beatMid(0)], [1, cx, beatBottom(1)]] })
+      routes.push({ color: 'var(--trunk)', pts: [[1, cx, beatBottom(1)], [2, cx, beatTop(2)]] })
+      routes.push({ color: 'var(--c-control)', pts: [[2, cx, beatTop(2)], [2, rx, beatBottom(2)], [3, rx, beatTop(3) + 40]] })
+      routes.push({ color: 'var(--c-create)', pts: [[2, cx, beatTop(2)], [2, lx, beatBottom(2)], [3, lx, beatTop(3) + 40]] })
+      routes.push({ color: 'var(--trunk)', pts: [[3, lx, beatBottom(3)], [4, cx, beatTop(4)]] })
+      routes.push({ color: 'var(--trunk)', pts: [[3, rx, beatBottom(3)], [4, cx, beatTop(4) + 30]] })
+      routes.push({ color: 'var(--trunk)', pts: [[4, cx, beatTop(4)], [6, cx, beatMid(6)]] })
+      return
+    }
+
+    // ---- sơ đồ lane desktop ----
+    const A = 0.42, B = 0.58 // hai lane trung tính mở đầu
+    const TV = 0.06, PROJ = 0.28, MON = 0.5, PHONE = 0.72, BAND = 0.94
+
+    // trục trung tính: open -> create -> control
+    routes.push({ color: 'var(--trunk)', width: 1.6, pts: [[0, A, beatMid(0)], [1, A, beatTop(1)], [1, A, beatBottom(1)], [2, A, beatTop(2)]] })
+    routes.push({ color: 'var(--trunk)', width: 1.6, pts: [[0, B, beatMid(0)], [1, B, beatTop(1)], [1, B, beatBottom(1)], [2, B, beatTop(2)]] })
+
+    // control: B tách thành PHONE + BAND (có màu)
+    routes.push({ color: 'var(--c-control)', pts: [[2, B, beatTop(2)], [2, PHONE, beatMid(2)], [3, PHONE, beatTop(3) + 60], [4, PHONE, beatBottom(4) - 40]] })
+    routes.push({ color: 'var(--c-band)', pts: [[2, B, beatTop(2)], [2, BAND, beatMid(2)], [3, BAND, beatTop(3) + 60], [4, BAND, beatBottom(4) - 40]] })
+
+    // A tiếp tục trung tính qua control -> outputs, tại đó tách TV / PROJ / MON
+    routes.push({ color: 'var(--trunk)', width: 1.6, pts: [[2, A, beatTop(2)], [3, A, beatTop(3)]] })
+    routes.push({ color: 'var(--c-tv)', pts: [[3, A, beatTop(3)], [3, TV, beatTop(3) + 60], [4, TV, beatBottom(4) - 40]] })
+    routes.push({ color: 'var(--c-projector)', pts: [[3, A, beatTop(3)], [3, PROJ, beatTop(3) + 60], [4, PROJ, beatBottom(4) - 60]] })
+    routes.push({ color: 'var(--c-create)', pts: [[3, A, beatTop(3)], [3, MON, beatTop(3) + 60], [4, MON, beatBottom(4) - 60]] })
+
+    // community: năm nhánh hội tụ về hai, rồi về một ở cuối
+    routes.push({ color: 'var(--trunk)', width: 1.6, pts: [[4, TV, beatBottom(4)], [5, 0.34, beatMid(5)]] })
+    routes.push({ color: 'var(--trunk)', width: 1.6, pts: [[4, PROJ, beatBottom(4)], [5, 0.34, beatMid(5)]] })
+    routes.push({ color: 'var(--trunk)', width: 1.6, pts: [[4, MON, beatBottom(4)], [5, 0.34, beatMid(5)]] })
+    routes.push({ color: 'var(--trunk)', width: 1.6, pts: [[4, PHONE, beatBottom(4)], [5, 0.66, beatMid(5)]] })
+    routes.push({ color: 'var(--trunk)', width: 1.6, pts: [[4, BAND, beatBottom(4)], [5, 0.66, beatMid(5)]] })
+    routes.push({ color: 'var(--trunk)', width: 1.8, pts: [[5, 0.34, beatMid(5)], [6, 0.5, beatMid(6)]] })
+    routes.push({ color: 'var(--trunk)', width: 1.8, pts: [[5, 0.66, beatMid(5)], [6, 0.5, beatMid(6)]] })
+  }
+
+  function pathFromPts(pts: Pt[]) {
+    let d = ''
+    for (let i = 0; i < pts.length - 1; i++) {
+      const p1 = pts[i]
+      const p2 = pts[i + 1]
+      const x1 = laneX(p1[1])
+      const y1 = p1[2]
+      const x2 = laneX(p2[1])
+      const y2 = p2[2]
+      const seg = elbow(x1, y1, x2, y2)
+      d += (i === 0 ? '' : ' ') + (i === 0 ? seg : seg.replace(/^M [^L]+/, `L ${x1} ${y1} `))
+    }
+    return d
+  }
+
+  function render() {
+    if (!svg || !diagram) return
+    buildRoutes()
+    // Chiều cao SVG phải khớp đúng phần nội dung của component (từ đỉnh
+    // beat đầu tới đáy beat cuối), KHÔNG dùng document.body.scrollHeight —
+    // body còn chứa nav phía trên và footer chung của site phía dưới, nên
+    // svg sẽ cao hơn chính .signal-map, tràn ra ngoài rồi sinh thêm một
+    // thanh cuộn phụ (overflow-y auto trên .signal-map) bên cạnh thanh
+    // cuộn chính của trang.
+    const diagramRect = diagram.getBoundingClientRect()
+    const svgHeight = diagramRect.bottom + window.scrollY
+    svg.setAttribute('height', String(svgHeight))
+    svg.innerHTML = ''
+
+    routes.forEach((route, idx) => {
+      const d = pathFromPts(route.pts)
+      const el = document.createElementNS('http://www.w3.org/2000/svg', 'path')
+      el.setAttribute('d', d)
+      el.setAttribute('stroke', route.color)
+      el.setAttribute('stroke-width', String(route.width || 2.4))
+      el.setAttribute('fill', 'none')
+      el.setAttribute('stroke-linecap', 'butt')
+      el.setAttribute('stroke-linejoin', 'miter')
+      el.dataset.idx = String(idx)
+      svg.appendChild(el)
+    })
+
+    if (!reduceMotion) {
+      routes.forEach((route, idx) => {
+        const el = svg!.querySelector<SVGPathElement>(`path[data-idx="${idx}"]`)
+        if (!el) return
+        const len = el.getTotalLength()
+        el.style.strokeDasharray = String(len)
+        el.style.strokeDashoffset = String(len)
+        route._el = el
+        route._len = len
+        const ys = route.pts.map((p) => p[2])
+        route._yStart = Math.min(...ys)
+        route._yEnd = Math.max(...ys)
+      })
+      updateDraw()
+    }
+  }
+
+  function updateDraw() {
+    const viewMid = window.scrollY + window.innerHeight * 0.72
+    routes.forEach((route) => {
+      if (!route._el || route._yStart === undefined || route._yEnd === undefined || route._len === undefined) return
+      const span = route._yEnd - route._yStart || 1
+      let progress = (viewMid - route._yStart) / span
+      progress = Math.max(0, Math.min(1, progress))
+      route._el.style.strokeDashoffset = String(route._len * (1 - progress))
+    })
+  }
+
+  let ticking = false
+  function onScroll() {
+    if (reduceMotion || ticking) return
+    ticking = true
+    requestAnimationFrame(() => {
+      updateDraw()
+      ticking = false
+    })
+  }
+
+  let resizeTimer: ReturnType<typeof setTimeout>
+  function onResize() {
+    clearTimeout(resizeTimer)
+    resizeTimer = setTimeout(render, 150)
+  }
+
+  window.addEventListener('scroll', onScroll, { passive: true })
+  window.addEventListener('resize', onResize)
+
+  const initialTimer = setTimeout(render, 80)
+  let cancelled = false
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(() => {
+      if (!cancelled) render()
+    })
+  }
+  // component được mount client-side (route home) sau khi sự kiện 'load'
+  // của trang đã qua từ lâu -> chủ động vẽ lại 2 khung hình sau khi layout
+  // ổn định, thay vì chờ 'load'.
+  requestAnimationFrame(() => requestAnimationFrame(() => { if (!cancelled) render() }))
+
+  let screenObserver: IntersectionObserver | null = null
+  const screenEls = container.querySelectorAll('.screen')
+  if ('IntersectionObserver' in window) {
+    screenObserver = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) entry.target.classList.add('is-visible')
+        })
+      },
+      { threshold: 0.25 }
+    )
+    screenEls.forEach((s) => screenObserver!.observe(s))
+  } else {
+    screenEls.forEach((s) => s.classList.add('is-visible'))
+  }
+
+  cleanupFns.push(() => {
+    cancelled = true
+    clearTimeout(initialTimer)
+    clearTimeout(resizeTimer)
+    window.removeEventListener('scroll', onScroll)
+    window.removeEventListener('resize', onResize)
+    screenObserver?.disconnect()
+  })
 })
 
 onBeforeUnmount(() => {
-  observer?.disconnect()
+  cleanupFns.forEach((fn) => fn())
+  cleanupFns = []
 })
 </script>
 
 <template>
-  <div ref="containerRef" class="home-experience">
-    <nav class="scene-dots" aria-label="Điều hướng theo phần">
-      <button
-        v-for="scene in scenes"
-        :key="scene.id"
-        class="scene-dot"
-        :class="{ 'is-active': activeId === scene.id }"
-        :aria-label="scene.title"
-        @click="scrollToScene(scene.id)"
-      />
-    </nav>
+  <div ref="containerRef" class="signal-map">
+    <svg ref="svgRef" id="routeSvg"></svg>
 
-    <section
-      v-for="scene in scenes"
-      :key="scene.id"
-      :ref="setSceneRef(scene.id)"
-      :data-scene-id="scene.id"
-      class="scene"
-      :class="[`scene--${scene.kind}`, { 'is-visible': visibleIds.has(scene.id) }]"
-    >
-      <div class="scene__visual">
-        <!-- Hero -->
-        <div v-if="scene.visual === 'hero'" class="diagram diagram--hero">
-          <div class="hero-glow" />
-          <img
-            v-if="scene.logo && !heroLogoFailed"
-            class="hero-logo"
-            :src="withBase(scene.logo)"
-            :alt="scene.eyebrow ?? 'Koinonia Bible'"
-            @error="heroLogoFailed = true"
-          />
-          <div v-else class="hero-mark">📖</div>
-        </div>
+    <main ref="diagramRef" id="diagram">
+      <section
+        v-for="(beat, i) in beats"
+        :key="beat.id"
+        :ref="(el) => setBeatRef(i, el as Element | null)"
+        class="beat"
+        :class="{ 'beat--open': beat.kind === 'open', 'beat--end': beat.kind === 'end' }"
+        :style="beat.sectionStyle"
+      >
+        <div
+          class="stage"
+          :class="{ 'stage--centered': beat.kind === 'centered' }"
+          :style="beat.stageStyle"
+        >
+          <template v-if="beat.kind === 'open' || beat.kind === 'end'">
+            <img
+              v-if="!logoFailed"
+              class="logo-mark logo-mark--img"
+              :src="withBase('/home/logoK.png')"
+              alt="Koinonia"
+              @error="logoFailed = true"
+            />
+            <div v-else class="logo-mark" />
 
-        <!-- 01-04: ảnh thật của app (khung cố định tỉ lệ 3:2 — xem
-             .scene__frame). Thay sơ đồ CSS giả lập trước đây. -->
-        <div v-else-if="scene.image" class="scene__frame">
-          <img
-            :src="withBase(scene.image)"
-            :alt="scene.title"
-            loading="lazy"
-            @error="onImageError"
-          />
-        </div>
+            <h1 v-if="beat.kind === 'open'" class="wordmark">Koinonia</h1>
+            <h2 v-else class="wordmark wordmark--sm">Download Koinonia</h2>
 
-        <!-- 05: tree -->
-        <div v-else-if="scene.visual === 'tree'" class="diagram diagram--tree">
-          <div class="tree-row tree-row--group">📁 Thờ phượng mở đầu</div>
-          <div class="tree-row tree-row--slide">— Slide 1</div>
-          <div class="tree-row tree-row--slide">— Slide 2</div>
-          <div class="tree-row tree-row--group">📁 Giảng luận <span class="lock">🔒</span></div>
-          <div class="tree-row tree-row--slide">— Slide 1</div>
-          <div class="tree-row tree-row--group">📁 Thánh ca kết thúc</div>
-          <div class="tree-row tree-row--slide">— Slide 1</div>
-        </div>
+            <p v-if="beat.kind === 'open'" class="tagline-en">Create. Present. Connect.</p>
+            <p class="tagline-vi">{{ beat.vi }}</p>
 
-        <!-- CTA -->
-        <div v-else class="diagram diagram--cta">
-          <div class="hero-glow" />
-          <div class="hero-mark">⬇</div>
-        </div>
-      </div>
+            <div v-if="beat.kind === 'end'" class="actions">
+              <a class="btn btn--primary" :href="site.links.download" target="_blank" rel="noopener">Tải xuống</a>
+              <a class="btn btn--ghost" :href="withBase(site.links.docs)">Hướng dẫn</a>
+            </div>
+          </template>
 
-      <div class="scene__text">
-        <p v-if="scene.eyebrow" class="eyebrow">{{ scene.eyebrow }}</p>
-        <h2 class="scene__title">{{ scene.title }}</h2>
-        <p v-if="scene.detail" class="scene__detail">{{ scene.detail }}</p>
-        <div v-if="scene.actions" class="scene__actions">
-          <a
-            v-for="action in scene.actions"
-            :key="action.label"
-            :href="action.href"
-            target="_blank"
-            class="scene-btn"
-            :class="{ 'scene-btn--primary': action.primary }"
-          >
-            {{ action.label }}
-          </a>
+          <template v-else-if="beat.kind === 'centered'">
+            <div class="keyword-block keyword-block--static">
+              <span class="tag">{{ beat.tag }}</span>
+              <h2 class="kw">
+                <span v-for="(line, li) in beat.kwLines" :key="li" class="kw-line">{{ line }}</span>
+              </h2>
+              <p class="vi">{{ beat.vi }}</p>
+            </div>
+          </template>
+
+          <template v-else>
+            <div class="keyword-block" :style="beat.kwStyle">
+              <span class="tag">{{ beat.tag }}</span>
+              <h2 class="kw" :style="beat.kwHeadingStyle">
+                <span v-for="(line, li) in beat.kwLines" :key="li" class="kw-line">{{ line }}</span>
+              </h2>
+              <p class="vi">{{ beat.vi }}</p>
+            </div>
+
+            <div
+              v-for="s in beat.screens"
+              :key="s.key"
+              class="screen"
+              :class="'screen--' + s.type"
+              :style="s.style"
+            >
+              <div class="screen__inner">
+                <img
+                  v-if="s.image"
+                  :src="withBase(s.image)"
+                  :alt="s.label || beat.tag"
+                  loading="lazy"
+                  @error="onScreenImageError"
+                />
+                <template v-else>
+                  <div
+                    v-for="(bar, bi) in s.bars"
+                    :key="bi"
+                    class="screen__bar"
+                    :style="{ width: bar.width, opacity: bar.opacity ?? 1, '--sc-color': 'var(--c-' + s.color + ')' }"
+                  ></div>
+                </template>
+              </div>
+              <span
+                v-if="s.label"
+                class="screen__label"
+                :style="{ '--sc-color': 'var(--c-' + s.color + ')' }"
+              >{{ s.label }}</span>
+            </div>
+          </template>
         </div>
-      </div>
-    </section>
+      </section>
+    </main>
   </div>
 </template>
 
 <style scoped>
-.home-experience {
-  height: 100svh;
-  overflow-y: auto;
-  scroll-snap-type: y mandatory;
-  scroll-behavior: smooth;
-  background: var(--koinonia-bg);
-  color: var(--koinonia-text-1);
+.signal-map {
+  --bg: #0c0c0d;
+  --surface: #171512;
+  --text-1: #f4f1ea;
+  --text-2: #8a8579;
+  --text-3: #56534c;
+  --line: #262420;
+  --trunk: #55524a;
+
+  --c-create: #c1622f;
+  --c-control: #6f7c62;
+  --c-tv: #cf9b3f;
+  --c-projector: #7c8a99;
+  --c-band: #9a7089;
+
+  position: relative;
+  background: var(--bg);
+  color: var(--text-1);
+  font-family: 'Be Vietnam Pro', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  /* Chỉ chặn cuộn ngang (vài đường tín hiệu/screen sát mép có thể tràn
+     nhẹ ra ngoài ở màn hình hẹp) — overflow-y phải khai báo rõ "visible",
+     nếu không trình duyệt tự suy ra overflow-y: auto (theo spec, khi chỉ
+     một trục overflow khác "visible" thì trục còn lại cũng bị ép khỏi
+     "visible"), biến chính khối này thành một vùng cuộn riêng, sinh thêm
+     thanh cuộn phụ bên cạnh thanh cuộn chính của trang. */
+  overflow-x: hidden;
+  overflow-y: visible;
 }
 
-.scene {
-  min-height: 100svh;
-  scroll-snap-align: start;
-  scroll-snap-stop: always;
+.signal-map ::selection {
+  background: var(--c-create);
+  color: #100b08;
+}
+
+#routeSvg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 0;
+  pointer-events: none;
+  overflow: visible;
+}
+
+#diagram {
+  position: relative;
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: 0 clamp(20px, 5vw, 56px);
+}
+
+.stage {
+  position: relative;
+  z-index: 1;
+  min-height: 46vh;
+  padding: clamp(3rem, 8vh, 6rem) 0;
+}
+
+.beat--open .stage {
+  min-height: 64vh;
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  gap: 32px;
-  padding: 72px 24px 48px;
-  padding-left: max(24px, env(safe-area-inset-left));
-  padding-right: max(24px, env(safe-area-inset-right));
-  opacity: 0.4;
-  transform: translateY(16px);
-  transition: opacity 0.6s ease, transform 0.6s ease;
-}
-
-.scene.is-visible {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .scene {
-    transition: none;
-    transform: none;
-  }
-}
-
-.scene__visual {
-  display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 220px;
+  text-align: center;
+  padding-top: clamp(4rem, 12vh, 7rem);
 }
 
-.scene__text {
-  max-width: 560px;
-  margin: 0 auto;
+.beat--end .stage {
+  min-height: 58vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   text-align: center;
 }
 
-.eyebrow {
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  font-size: 13px;
-  color: var(--koinonia-accent-2);
-  margin: 0 0 12px;
-  font-weight: 600;
-}
-
-.scene__title {
-  font-size: clamp(24px, 6vw, 38px);
-  line-height: 1.25;
-  margin: 0 0 16px;
-  color: var(--koinonia-text-1);
-}
-
-.scene--hero .scene__title {
-  font-size: clamp(30px, 8vw, 52px);
-}
-
-.scene__detail {
-  font-size: clamp(15px, 3.6vw, 17px);
-  line-height: 1.6;
-  color: var(--koinonia-text-2);
-  margin: 0;
-}
-
-.scene__actions {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 14px;
-  margin-top: 28px;
-}
-
-.scene-btn {
-  padding: 13px 26px;
-  border-radius: 12px;
-  border: 1px solid var(--koinonia-border);
-  color: var(--koinonia-text-1);
-  text-decoration: none;
-  font-size: 15px;
-  transition: transform 0.2s ease, background 0.2s ease;
-}
-
-.scene-btn:hover {
-  transform: translateY(-2px);
-}
-
-.scene-btn--primary {
-  background: linear-gradient(120deg, var(--koinonia-accent-1), var(--koinonia-accent-2));
-  border-color: transparent;
-  color: #04101f;
-  font-weight: 600;
-}
-
-/* ---- dot navigation ---- */
-.scene-dots {
-  position: fixed;
-  z-index: 20;
-  right: 16px;
-  top: 50%;
-  transform: translateY(-50%);
+.stage--centered {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-}
-
-.scene-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  border: none;
-  background: var(--koinonia-border);
-  cursor: pointer;
-  padding: 0;
-  transition: background 0.2s ease, transform 0.2s ease;
-}
-
-.scene-dot.is-active {
-  background: var(--koinonia-accent-2);
-  transform: scale(1.4);
-}
-
-@media (max-width: 640px) {
-  .scene-dots {
-    right: 10px;
-    gap: 8px;
-  }
-}
-
-/* ---- shared diagram look (hero / cta / tree — xem block "khung ảnh
-   thật" riêng bên dưới cho khối 01-04) ---- */
-.diagram {
-  width: 100%;
-  max-width: 420px;
-  display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 18px;
+  text-align: center;
 }
 
-/* ---- khung ảnh thật cho khối 01-04 ----
-   Tỉ lệ CỐ ĐỊNH 3:2. Thiết kế/export ảnh đúng bội số của khung hiển thị
-   tối đa (600 × 400px) để nét trên màn hình Retina — khuyến nghị xuất
-   PNG 1200 × 800px (@2x). object-fit: cover -> ảnh sẽ bị CẮT nếu không
-   đúng tỉ lệ 3:2, nên bố cục nội dung quan trọng (chữ, icon...) tránh
-   nằm sát mép, giữ trong vùng an toàn ~90% giữa khung. */
-.scene__frame {
-  width: 100%;
-  max-width: 600px;
-  aspect-ratio: 3 / 2;
-  border-radius: 20px;
-  overflow: hidden;
-  border: 1px solid var(--koinonia-border);
-  background: var(--koinonia-surface);
-  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.35);
+.keyword-block {
+  position: absolute;
+  max-width: 420px;
 }
 
-.scene__frame img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+.keyword-block--static {
+  position: static;
+}
+
+.keyword-block--static .vi {
+  margin: 0 auto;
+}
+
+.keyword-block .tag {
+  display: inline-block;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.14em;
+  color: var(--kw-color, var(--text-2));
+  margin-bottom: 10px;
+}
+
+.keyword-block h2.kw {
+  font-family: 'Big Shoulders Display', sans-serif;
+  font-weight: 800;
+  text-transform: uppercase;
+  line-height: 0.86;
+  letter-spacing: 0.01em;
+  font-size: clamp(2.6rem, 6.4vw, 5.2rem);
+  margin: 0 0 0.5rem;
+  color: var(--text-1);
+}
+
+.kw-line {
   display: block;
 }
 
-/* tree */
-.diagram--tree {
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 6px;
-  font-size: 13px;
+.keyword-block p.vi {
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--text-2);
+  max-width: 34ch;
+  margin: 0;
 }
 
-.tree-row {
-  color: var(--koinonia-text-2);
+.screen {
+  position: absolute;
+  background: var(--surface);
+  border: 1.5px solid var(--line);
+  opacity: 0;
+  transform: translateY(18px) scale(0.97);
+  transition: opacity 0.75s cubic-bezier(0.2, 0.7, 0.3, 1), transform 0.75s cubic-bezier(0.2, 0.7, 0.3, 1);
 }
 
-.tree-row--group {
-  color: var(--koinonia-text-1);
-  font-weight: 600;
-  margin-top: 6px;
+.screen.is-visible {
+  opacity: 1;
+  transform: none;
 }
 
-.tree-row--slide {
-  padding-left: 22px;
-}
-
-.lock {
-  font-size: 11px;
-  margin-left: 6px;
-}
-
-/* hero / cta glow */
-.diagram--hero,
-.diagram--cta {
-  position: relative;
-  width: 220px;
-  height: 220px;
-}
-
-.hero-glow {
+.screen__inner {
   position: absolute;
   inset: 0;
-  border-radius: 50%;
-  background: radial-gradient(
-    circle,
-    rgba(37, 99, 235, 0.35),
-    rgba(6, 182, 212, 0.08) 60%,
-    transparent 70%
-  );
-  filter: blur(2px);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 8px;
+  padding: 14%;
 }
 
-.hero-mark {
-  position: relative;
+.screen__inner img {
   width: 100%;
   height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 64px;
+  object-fit: cover;
+  position: absolute;
+  inset: 0;
 }
 
-.hero-logo {
-  position: relative;
-  width: 72%;
-  height: 72%;
+.screen__bar {
+  height: 7%;
+  background: var(--sc-color, var(--text-2));
+  opacity: 0.55;
+  border-radius: 1px;
+}
+
+.screen__label {
+  position: absolute;
+  left: 0;
+  bottom: -22px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.12em;
+  color: var(--sc-color, var(--text-2));
+}
+
+.screen--tv {
+  width: min(230px, 30vw);
+  aspect-ratio: 16 / 9;
+  border-width: 7px;
+}
+
+.screen--projector {
+  width: min(150px, 22vw);
+  aspect-ratio: 4 / 3;
+  border-radius: 3px 3px 14px 14px;
+}
+
+.screen--monitor {
+  width: min(190px, 26vw);
+  aspect-ratio: 16 / 10;
+}
+
+.screen--monitor::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -22px;
+  width: 5px;
+  height: 22px;
+  background: var(--line);
+  transform: translateX(-50%);
+}
+
+.screen--phone {
+  width: 78px;
+  aspect-ratio: 9 / 18.5;
+  border-radius: 12px;
+  border-width: 5px;
+}
+
+.screen--band {
+  width: min(150px, 22vw);
+  aspect-ratio: 5 / 2;
+  border-radius: 2px;
+}
+
+.wordmark {
+  font-family: 'Big Shoulders Display', sans-serif;
+  font-weight: 800;
+  text-transform: uppercase;
+  font-size: clamp(2.4rem, 7vw, 4.5rem);
+  letter-spacing: 0.02em;
+  margin: 0;
+}
+
+.wordmark--sm {
+  font-size: clamp(2rem, 5.6vw, 3.6rem);
+}
+
+.logo-mark {
+  width: 34px;
+  height: 34px;
+  background: var(--text-1);
+  clip-path: polygon(0 0, 68% 0, 100% 32%, 100% 100%, 32% 100%, 0 68%);
+  margin-bottom: 22px;
+}
+
+.logo-mark--img {
   object-fit: contain;
-  filter: drop-shadow(0 12px 30px rgba(0, 0, 0, 0.35));
+  background: none;
+  clip-path: none;
 }
 
-/* ---- desktop: side-by-side layout ---- */
-@media (min-width: 900px) {
-  .scene {
-    flex-direction: row;
-    align-items: center;
-    justify-content: center;
-    gap: 64px;
-    padding: 0 80px;
+.tagline-en {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.85rem;
+  letter-spacing: 0.1em;
+  color: var(--text-2);
+  margin: 14px 0 4px;
+  text-transform: uppercase;
+}
+
+.tagline-vi {
+  font-size: 1rem;
+  color: var(--text-2);
+  margin: 0;
+}
+
+.actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 28px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 13px 24px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  text-decoration: none;
+  border: 1px solid var(--line);
+  color: var(--text-1);
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.btn--primary {
+  background: var(--text-1);
+  color: #100b08;
+  border-color: var(--text-1);
+}
+
+.btn--primary:hover {
+  background: var(--c-create);
+  border-color: var(--c-create);
+  color: var(--text-1);
+}
+
+.btn--ghost:hover {
+  border-color: var(--text-2);
+}
+
+.btn:focus-visible {
+  outline: 2px solid var(--c-create);
+  outline-offset: 2px;
+}
+
+@media (max-width: 780px) {
+  .beat,
+  .stage {
+    min-height: 0 !important;
   }
 
-  .scene__visual {
-    flex: 1;
-    min-height: unset;
+  .keyword-block {
+    position: static !important;
+    max-width: none;
+    margin-bottom: 22px;
   }
 
-  .scene__text {
-    flex: 1;
-    text-align: left;
-    margin: 0;
+  .stage {
+    display: flex;
+    flex-direction: column;
+    padding: 2.2rem 0 !important;
   }
 
-  .scene__actions {
-    justify-content: flex-start;
+  .beat--open .stage,
+  .beat--end .stage {
+    padding-top: 3.2rem !important;
   }
 
-  .scene--hero .scene__visual,
-  .scene--cta .scene__visual {
-    order: 2;
+  .screen {
+    position: static !important;
+    margin: 0 0 28px;
+    transform: translateY(14px);
+  }
+
+  .screen.is-visible {
+    transform: none;
+  }
+
+  .screen__inner {
+    position: static !important;
+    inset: auto;
+    padding: 14% 12%;
+  }
+
+  .screen__inner img {
+    position: static;
+  }
+
+  .screen__bar {
+    height: 6px !important;
+  }
+
+  .screen__label {
+    position: static !important;
+    display: block;
+    left: auto;
+    bottom: auto;
+    margin-top: 8px;
+  }
+
+  .screen--monitor::after {
+    display: none;
+  }
+
+  .beat:not(.beat--open):not(.beat--end) .stage {
+    padding-left: 4px;
+  }
+
+  #routeSvg {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .screen {
+    transition: none;
+    opacity: 1;
+    transform: none;
   }
 }
 </style>

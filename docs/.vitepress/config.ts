@@ -5,7 +5,19 @@ export default defineConfig({
 
   title: "Koinonia Bible",
   base: "/koinonia-site/",
-  head: [["link", { rel: "icon", href: "/koinonia-site/favicon.ico" }]],
+  head: [
+    ["link", { rel: "icon", href: "/koinonia-site/favicon.ico" }],
+    ["link", { rel: "preconnect", href: "https://fonts.googleapis.com" }],
+    ["link", { rel: "preconnect", href: "https://fonts.gstatic.com", crossorigin: "" }],
+    [
+      "link",
+      {
+        rel: "stylesheet",
+        href:
+          "https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=Big+Shoulders+Display:wght@700;800;900&family=JetBrains+Mono:wght@500&display=swap",
+      },
+    ],
+  ],
   description: "Phần mềm đọc và trình chiếu Kinh Thánh",
 
   lastUpdated: true,
