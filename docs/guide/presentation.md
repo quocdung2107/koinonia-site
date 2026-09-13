@@ -1,44 +1,31 @@
-# Trình chiếu
+# Trình chiếu — tổng quan
 
-Tính năng **Trình chiếu** giúp bạn nhanh chóng đưa các câu Kinh Thánh hoặc lời bài hát lên màn hình máy chiếu.
+::: tip Trang này đã được tách thành nhiều bài
+Phần trình chiếu của Koinonia đã lớn hơn nhiều so với trước, nên nội dung cũ ở đây được viết lại và chia thành các bài riêng. Trang này giữ lại làm mục lục.
+:::
 
-## Trình chiếu Kinh Thánh
+## Bắt đầu từ đâu?
 
-1. Mở **tab Kinh Thánh** và chọn các câu cần trình chiếu.
-2. Mỗi câu được chọn sẽ tự động xuất hiện trong **tab Đã chọn**.
-3. Để bỏ chọn một câu, chỉ cần nhấp lại vào câu đó trong màn hình đọc hoặc trong **tab Đã chọn**.
-4. Thứ tự bạn chọn các câu sẽ là **thứ tự hiển thị của các slide**. Thứ tự này có thể thay đổi sau trong phần **Trình chiếu**.
-5. Chuyển sang **tab Trình chiếu**, mỗi câu Kinh Thánh sẽ được tạo thành một slide riêng. Nhấn **Chiếu** để hiển thị ngay slide lên màn hình trình chiếu.
+Nếu bạn mới dùng trình chiếu lần đầu, hãy đi theo thứ tự sau:
 
-## Chỉnh sửa slide
+1. **[Bản đồ ứng dụng](/guide/app-map)** — hiểu ba cửa sổ, hai chế độ lưu trữ, và 8 thuật ngữ cốt lõi. Đọc bài này trước, nó tiết kiệm cho bạn rất nhiều thời gian về sau.
+2. **[Phiên Thờ Phượng](/guide/projects)** — tạo một buổi nhóm để làm việc trong đó.
+3. **[Trình Chiếu (Studio)](/guide/studio)** — bố cục màn hình và **ba cách tạo slide**, trong đó có cách tạo nhanh slide bài hát bằng dấu `---` và nút **Định dạng Kinh Thánh**.
+4. **[Slide & Canvas](/guide/slides)** — chỉnh nội dung, chữ, ảnh, video, hoạt cảnh, thứ tự xuất hiện.
+5. **[Nhóm & Khóa Nhóm](/guide/groups)** — tổ chức buổi nhóm và chống xô lệch.
 
-Bạn có thể chỉnh sửa từng slide riêng lẻ hoặc chỉnh sửa nhiều slide cùng lúc.
+## Khi cần thêm
 
-* Thay đổi nội dung của slide.
-* Điều chỉnh cỡ chữ, màu chữ, màu nền và các thiết lập hiển thị khác.
-* Chọn **Chọn tất cả** để chọn toàn bộ slide, sau đó nhấn **Chỉnh slide** để áp dụng cùng một định dạng cho tất cả các slide đã chọn.
-* Có thể chọn **Slide chẵn/lẻ** để áp dụng màu sắc hoặc định dạng khác nhau, thuận tiện khi trình chiếu Kinh Thánh theo hình thức đối đáp.
+- **[Màn hình xuất & Luồng màn hình](/guide/outputs)** — dùng nhiều máy chiếu cùng lúc.
+- **[Lớp phủ](/guide/overlays)** — logo, chữ chạy, đồng hồ đếm ngược, nền.
+- **[Thư viện Mẫu & Bộ sưu tập](/guide/model-library)** — dùng lại nội dung giữa các tuần.
 
-## Tạo nhanh slide bài hát
+## Ngày Chúa nhật
 
-Bạn có thể tạo slide bài hát rất nhanh bằng tính năng **Tạo hàng loạt bằng dấu `---`**.
+- **[Cửa sổ Điều khiển](/guide/controller)** — màn hình làm việc của người vận hành.
+- **[Điều khiển từ xa bằng điện thoại](/guide/remote)** — mục sư và ban hát tự bấm.
+- **[Quy trình & Checklist Chúa nhật](/guide/service-checklist)** — bản in ra dán cạnh máy.
 
-* Dán toàn bộ lời bài hát vào ô nhập liệu.
-* Chèn dấu `---` tại vị trí muốn tách slide.
-* Nhấn **Tạo slide từ khối văn bản**, mỗi đoạn giữa hai dấu `---` sẽ được tạo thành một slide riêng.
+## Soạn nội dung trước đó
 
-Nếu lời bài hát được sao chép kèm theo **hợp âm**, hãy sử dụng nút **Lọc hợp âm** để tự động loại bỏ các ký hiệu hợp âm trước khi tạo slide.
-
-## Tạo slide từ các bản dịch Kinh Thánh khác
-
-Hiện tại ứng dụng chỉ tích hợp **Kinh Thánh Truyền thống 1925**. Các bản dịch khác sẽ được bổ sung trong những phiên bản tiếp theo.
-
-Trong thời gian này, bạn vẫn có thể sử dụng các bản dịch khác bằng cách sao chép nội dung từ những nguồn như Bible.com hoặc các ứng dụng Kinh Thánh khác.
-
-Để tạo slide nhanh:
-
-1. Sao chép đoạn Kinh Thánh cần trình chiếu.
-2. Dán vào ô **Tạo hàng loạt bằng dấu `---`**.
-3. Nhấn **Định dạng Kinh Thánh** để ứng dụng tự động chèn dấu `---`, điền tiêu đề và chuẩn bị nội dung trình chiếu.
-4. Nhấn **Tạo slide từ khối văn bản** để tạo toàn bộ slide chỉ trong vài giây.
-
+- **[Sổ tay bài học](/guide/notebook)** — soạn bài giảng rồi **tự sinh ra bộ slide**, thay cho việc gõ lại từng slide.

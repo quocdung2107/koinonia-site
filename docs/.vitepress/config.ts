@@ -63,27 +63,56 @@ export default defineConfig({
       "/guide/": [
         {
           text: "Bắt đầu",
-
           items: [
-            {
-              text: "Giới thiệu",
-              link: "/guide/getting-started",
-            },
+            { text: "Giới thiệu & cài đặt", link: "/guide/getting-started" },
+            { text: "Bản đồ ứng dụng", link: "/guide/app-map" },
+          ],
+        },
 
-            {
-              text: "Đọc Kinh Thánh",
-              link: "/guide/reader",
-            },
+        {
+          text: "Chuẩn bị nội dung",
+          items: [
+            { text: "Đọc Kinh Thánh", link: "/guide/reader" },
+            { text: "Tìm kiếm", link: "/guide/search" },
+            { text: "Ghi chú & Nhãn", link: "/guide/notes" },
+            { text: "Sổ tay bài học", link: "/guide/notebook" },
+          ],
+        },
 
-            {
-              text: "Tìm kiếm",
-              link: "/guide/search",
-            },
+        {
+          text: "Tổ chức & lưu trữ",
+          items: [
+            { text: "Phiên Thờ Phượng", link: "/guide/projects" },
+            { text: "Thư viện Mẫu & Bộ sưu tập", link: "/guide/model-library" },
+          ],
+        },
 
-            {
-              text: "Trình chiếu",
-              link: "/guide/presentation",
-            },
+        {
+          text: "Dựng slide",
+          items: [
+            { text: "Trình chiếu — tổng quan", link: "/guide/presentation" },
+            { text: "Trình Chiếu (Studio)", link: "/guide/studio" },
+            { text: "Slide & Canvas", link: "/guide/slides" },
+            { text: "Nhóm & Khóa Nhóm", link: "/guide/groups" },
+            { text: "Màn hình xuất & Luồng màn hình", link: "/guide/outputs" },
+            { text: "Lớp phủ", link: "/guide/overlays" },
+          ],
+        },
+
+        {
+          text: "Vận hành buổi nhóm",
+          items: [
+            { text: "Cửa sổ Điều khiển", link: "/guide/controller" },
+            { text: "Điều khiển từ xa bằng điện thoại", link: "/guide/remote" },
+            { text: "Quy trình & Checklist Chúa nhật", link: "/guide/service-checklist" },
+          ],
+        },
+
+        {
+          text: "Tham khảo",
+          items: [
+            { text: "Cài đặt & Ngôn ngữ", link: "/guide/settings" },
+            { text: "Xử lý sự cố", link: "/guide/troubleshooting" },
           ],
         },
       ],
